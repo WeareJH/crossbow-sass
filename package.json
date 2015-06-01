@@ -1,0 +1,18 @@
+{
+  "name": "crossbow-sass",
+  "version": "1.0.0",
+  "description": "Sass, autoprefixer, minification",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "autoprefixer": "^5.2.0",
+    "clean-css": "^3.3.0",
+    "crossbow-ctx": "^1.0.0",
+    "node-sass": "^3.1.2",
+    "postcss": "^4.1.11"
+  }
+}
