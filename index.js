@@ -30,7 +30,7 @@ function processSass (deferred, previous, ctx) {
 function minifyCss (deferred, previous) {
 
     var minified = new CleanCSS({
-        relativeTo: __dirname
+        relativeTo: ctx.relPath(['sass', 'relativeTo'])
     }).minify(previous.toString()).styles;
 
     deferred.resolve(minified);
