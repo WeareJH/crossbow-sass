@@ -26,8 +26,9 @@ function processSass (deferred, previous, ctx) {
  * Minify CSS output
  * @param deferred
  * @param previous
+ * @param ctx
  */
-function minifyCss (deferred, previous) {
+function minifyCss (deferred, previous, ctx) {
 
     var minified = new CleanCSS({
         relativeTo: ctx.relPath(['sass', 'relativeTo'])
