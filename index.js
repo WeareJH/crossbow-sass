@@ -1,13 +1,11 @@
 var sass     = require('node-sass');
 var CleanCSS = require('clean-css');
-var prom     = require('prom-seq');
 
 /**
  * Define the tasks that make up a build
  * @type {Object}
  */
 var tasks    = [processSass, autoprefix, minifyCss, writeFile];
-var builder  = prom.create(tasks);
 
 /**
  * Process SASS
@@ -17,7 +15,7 @@ var builder  = prom.create(tasks);
  */
 function processSass (deferred, previous, ctx) {
     var out = sass.renderSync({
-        file: ctx.path.make('sass', 'input')
+        file: ctx.path.make('sass.input')
     });
     deferred.resolve(out.css);
 }
@@ -31,7 +29,7 @@ function processSass (deferred, previous, ctx) {
 function minifyCss (deferred, previous, ctx) {
 
     var minified = new CleanCSS({
-        relativeTo: ctx.relPath(['sass', 'relativeTo'])
+        relativeTo: ctx.path.make('sass.root')
     }).minify(previous.toString()).styles;
 
     deferred.resolve(minified);
@@ -58,24 +56,13 @@ function autoprefix (deferred, previous) {
  */
 function writeFile (deferred, previous, ctx) {
     try {
-        ctx.file.write('sass', 'output', previous);
-        deferred.notify({level: 'debug', msg: 'CSS File written to ' + ctx.path.make('sass', 'output')});
+        ctx.file.write('sass.output', previous);
+        deferred.notify({level: 'debug', msg: 'CSS File written to ' + ctx.path.make('sass.output')});
         deferred.resolve(previous);
     } catch (e) {
         deferred.reject(e);
     }
 }
 
-if (!module.parent) {
-    builder('', require('crossbow-ctx'))
-        .progress(function (obj) {
-            console.log(obj.msg);
-        })
-        .catch(function (err) {
-            throw err;
-        }).done();
-}
-
-module.exports = builder;
 module.exports.tasks = tasks;
 
