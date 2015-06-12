@@ -1,6 +1,6 @@
 {
   "name": "crossbow-sass",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Sass, autoprefixer, minification",
   "main": "index.js",
   "scripts": {
