@@ -7,10 +7,9 @@ var prom   = require('prom-seq');
 
 del('test/fixtures/dist');
 
-var task = prom.create(cli.tasks);
-
-task('', require('crossbow-ctx')()).then(function () {
-    assert(exists('test/fixtures/dist/main.css'));
-    assert(read('test/fixtures/dist/main.css', 'utf-8').indexOf('normalize.css') > -1);
-    console.log('Build complete');
-}).done();
+require('crossbow-cli')({input: ['run', 'index']}, {handoff: true})
+    .then(function () {
+        assert(exists('test/fixtures/dist/main.css'));
+        assert(read('test/fixtures/dist/main.css', 'utf-8').indexOf('normalize.css') > -1);
+        console.log('Build complete');
+    }).done();
