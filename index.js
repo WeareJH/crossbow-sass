@@ -1,68 +1,74 @@
 var sass     = require('node-sass');
 var CleanCSS = require('clean-css');
-
-/**
- * Define the tasks that make up a build
- * @type {Object}
- */
-var tasks    = [processSass, autoprefix, minifyCss, writeFile];
+var dirname  = require('path').dirname;
+var post     = require('postcss')([require('autoprefixer')]);
 
 /**
  * Process SASS
  * @param deferred
- * @param previous
+ * @param opts - task specific options
  * @param ctx
  */
-function processSass (deferred, previous, ctx) {
-    var out = sass.renderSync({
-        file: ctx.path.make('sass.input')
+function processSass (deferred, opts, ctx) {
+
+    var log = deferred.log;
+
+    var min = new CleanCSS({
+        relativeTo: dirname(opts.input)
     });
-    deferred.resolve(out.css);
-}
 
-/**
- * Minify CSS output
- * @param deferred
- * @param previous
- * @param ctx
- */
-function minifyCss (deferred, previous, ctx) {
+    /**
+     * Kick it all off
+     */
+    sass.render({file: ctx.path.make(opts.input)}, handleSassComplete);
 
-    var minified = new CleanCSS({
-        relativeTo: ctx.path.make('sass.root')
-    }).minify(previous.toString()).styles;
+    /**
+     * Handle SASS Errors nicely
+     */
+    function handleError (err) {
+        err.silent = true;
+        deferred.onError(err);
+        log.error('{cyan:Message:}', String(err.message));
+        log.error('{cyan:   File:}', String(err.file));
+        log.error('{cyan:   Line:}', String(err.line));
+        log.error('{cyan: Column:}', String(err.column));
+    }
 
-    deferred.resolve(minified);
-}
+    /**
+     * Minify & Write the file to disk following
+     * completion of Autoprefixer
+     * @param {Object} result
+     */
+    function handleAutoPrefixerComplete (result) {
+        ctx.file.write(
+            opts.output,
+            minify(result)
+        );
+        deferred.onCompleted();
+    }
 
-/**
- * Add prefixes automatically
- * @param deferred
- * @param previous
- */
-function autoprefix (deferred, previous) {
-    var postcss = require('postcss');
-    postcss([require('autoprefixer')])
-        .process(previous)
-        .then(function (result) {
-            deferred.resolve(result.css);
-        }).catch(deferred.reject);
-}
+    /**
+     * Minify output
+     */
+    function minify (result) {
+        return min.minify(result.css.toString()).styles;
+    }
 
-/**
- * @param deferred
- * @param previous
- * @param ctx
- */
-function writeFile (deferred, previous, ctx) {
-    try {
-        ctx.file.write('sass.output', previous);
-        deferred.notify({level: 'debug', msg: 'CSS File written to ' + ctx.path.make('sass.output')});
-        deferred.resolve(previous);
-    } catch (e) {
-        deferred.reject(e);
+    /**
+     * @param err
+     * @param result
+     * @returns {*}
+     */
+    function handleSassComplete (err, result) {
+        if (err) {
+            return handleError(err);
+        }
+
+        post.process(result.css)
+            .then(handleAutoPrefixerComplete)
+            .catch(deferred.onError.bind(deferred));
     }
 }
 
-module.exports.tasks = tasks;
+module.exports.tasks = [processSass];
 
