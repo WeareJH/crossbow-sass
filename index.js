@@ -1,72 +1,48 @@
 var sass     = require('node-sass');
 var CleanCSS = require('clean-css');
 var dirname  = require('path').dirname;
-var post     = require('postcss')([require('autoprefixer')]);
+var Rx       = require('rx');
 
 /**
  * Process SASS
  * @param deferred
- * @param opts - task specific options
+ * @param previous
  * @param ctx
  */
-function processSass (deferred, opts, ctx) {
+function processSass (obs, opts, ctx) {
 
-    var log = deferred.log;
+    var log = obs.log;
 
-    var min = new CleanCSS({
-        relativeTo: dirname(opts.input)
-    });
+    var min      = new CleanCSS({relativeTo: dirname(opts.input)});
+    var process  = Rx.Observable.fromNodeCallback(sass.render);
+    var prefixer = require('postcss')([require('autoprefixer')]);
 
     /**
-     * Kick it all off
+     * Kick it all off by running through SASS first
      */
-    sass.render({file: ctx.path.make(opts.input)}, handleSassComplete);
+    process({file: ctx.path.make(opts.input)})
+        .concatMap(function (x) {
+            return Rx.Observable.fromPromise(prefixer.process(x.css))
+        })
+        .map(function (x) { return x.css })
+        .map(min.minify.bind(min))
+        .map(function (x) { return x.styles })
+        .subscribe(function (x) {
+            ctx.file.write(opts.output, x);
+        }, handleError, obs.onCompleted.bind(obs))
 
     /**
      * Handle SASS Errors nicely
      */
     function handleError (err) {
-        err.silent = true;
-        deferred.onError(err);
-        log.error('{cyan:Message:}', String(err.message));
-        log.error('{cyan:   File:}', String(err.file));
-        log.error('{cyan:   Line:}', String(err.line));
-        log.error('{cyan: Column:}', String(err.column));
-    }
-
-    /**
-     * Minify & Write the file to disk following
-     * completion of Autoprefixer
-     * @param {Object} result
-     */
-    function handleAutoPrefixerComplete (result) {
-        ctx.file.write(
-            opts.output,
-            minify(result)
-        );
-        deferred.onCompleted();
-    }
-
-    /**
-     * Minify output
-     */
-    function minify (result) {
-        return min.minify(result.css.toString()).styles;
-    }
-
-    /**
-     * @param err
-     * @param result
-     * @returns {*}
-     */
-    function handleSassComplete (err, result) {
-        if (err) {
-            return handleError(err);
+        if (err.file && err.line) {
+            err.silent = true;
+            log.error('{cyan:Message:}', String(err.message));
+            log.error('{cyan:   File:}', String(err.file));
+            log.error('{cyan:   Line:}', String(err.line));
+            log.error('{cyan: Column:}', String(err.column));
         }
-
-        post.process(result.css)
-            .then(handleAutoPrefixerComplete)
-            .catch(deferred.onError.bind(deferred));
+        obs.onError(err);
     }
 }
 
