@@ -1,5 +1,9 @@
 > a [crossbow-cli](https://github.com/Crossbow-js/crossbow-cli) plugin
 
+```shell
+npm install crossbow-sass
+```
+
 Add to your crossbow config
 
 ```
