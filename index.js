@@ -21,15 +21,17 @@ function processSass (obs, opts, ctx) {
      * Kick it all off by running through SASS first
      */
     process({file: ctx.path.make(opts.input)})
-        .concatMap(function (x) {
+        .flatMap(function (x) {
             return Rx.Observable.fromPromise(prefixer.process(x.css))
         })
-        .map(function (x) { return x.css })
+        .pluck('css')
         .map(min.minify.bind(min))
-        .map(function (x) { return x.styles })
-        .subscribe(function (x) {
+        .pluck('styles')
+        .do(function (x) {
+            log.info('CSS written: {yellow:%s}', opts.output);
             ctx.file.write(opts.output, x);
-        }, handleError, obs.onCompleted.bind(obs))
+        })
+        .subscribe(null, handleError, obs.onCompleted.bind(obs));
 
     /**
      * Handle SASS Errors nicely

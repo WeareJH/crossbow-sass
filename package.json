@@ -4,27 +4,19 @@
   "description": "Sass, autoprefixer, minification",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "rimraf test/fixtures/dist && crossbow run index.js && node test.js"
   },
   "author": "",
   "license": "ISC",
-  "crossbow": {
-    "config": {
-      "sass": {
-        "root": "test/fixtures",
-        "input": "test/fixtures/main.scss",
-        "output": "test/fixtures/dist/main.css"
-      }
-    }
-  },
   "dependencies": {
     "autoprefixer": "^5.2.0",
     "clean-css": "^3.3.0",
     "node-sass": "^3.1.2",
-    "postcss": "^4.1.11",
-    "rx": "^3.0.0"
+    "postcss": "^4.1.16",
+    "rx": "^3.1.2"
   },
   "devDependencies": {
+    "crossbow-cli": "^2.0.3",
     "crossbow-ctx": "^1.1.8",
     "normalize.css": "^3.0.3",
     "prom-seq": "^1.3.0",

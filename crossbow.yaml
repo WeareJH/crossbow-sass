@@ -1,0 +1,4 @@
+config:
+  "index.js":
+    input: "test/fixtures/main.scss"
+    output: "test/fixtures/dist/main.css"
