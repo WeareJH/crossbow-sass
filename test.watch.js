@@ -5,13 +5,17 @@ var read   = require('fs').readFileSync;
 
 rim.sync('test/fixtures/dist/main.css');
 var cb = require('crossbow-cli');
-var runner = cb({
-    input: ['run', './index.js'],
-    flags: {
-        handoff: true
-    }
+cb({
+    input: ['watch', 'sass']
 }, {
     crossbow: {
+        watch: {
+            tasks: {
+                sass: {
+                    "test/fixtures/**/*.scss": ['./index.js']
+                }
+            }
+        },
         config: {
             "./index.js": {
                 input: "test/fixtures/main.scss",
@@ -21,14 +25,4 @@ var runner = cb({
     }
 });
 
-runner
-    .run
-    .subscribe(function () {
-        //console.log('VALUE');
-    }, function (err) {
-        //console.log(err);
-    }, function () {
-        assert(exists('test/fixtures/dist/main.css'));
-        assert(read('test/fixtures/dist/main.css', 'utf-8').indexOf('normalize.css') > -1);
-    })
 

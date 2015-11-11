@@ -1,7 +1,9 @@
 var sass     = require('node-sass');
 var CleanCSS = require('clean-css');
+require('es6-promise');
 var dirname  = require('path').dirname;
 var Rx       = require('rx');
+// Rx.config.longStackSupport = true;
 
 /**
  * Process SASS
@@ -20,7 +22,7 @@ function processSass (obs, opts, ctx) {
     /**
      * Kick it all off by running through SASS first
      */
-    process({file: ctx.path.make(opts.input)})
+    return process({file: opts.input})
         .flatMap(function (x) {
             return Rx.Observable.fromPromise(prefixer.process(x.css))
         })
@@ -30,21 +32,27 @@ function processSass (obs, opts, ctx) {
         .do(function (x) {
             log.info('CSS written: {yellow:%s}', opts.output);
             ctx.file.write(opts.output, x);
-        })
-        .subscribe(null, handleError, obs.onCompleted.bind(obs));
+        }).catch(function (err) {
+            handleError(err);
+            return Rx.Observable.throw(err);
+        });
 
     /**
      * Handle SASS Errors nicely
      */
     function handleError (err) {
         if (err.file && err.line) {
-            err.silent = true;
-            log.error('{cyan:Message:}', String(err.message));
+            err._cbDisplayed = true;
+            if (err.formatted) {
+                log.error('{red:[ERROR]');
+                console.log(err.formatted);
+            } else {
+                log.error('{cyan:Message:}', String(err.message));
+            }
             log.error('{cyan:   File:}', String(err.file));
             log.error('{cyan:   Line:}', String(err.line));
             log.error('{cyan: Column:}', String(err.column));
         }
-        obs.onError(err);
     }
 }
 
