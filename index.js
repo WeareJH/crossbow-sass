@@ -1,9 +1,9 @@
-var sass     = require('node-sass');
-var CleanCSS = require('clean-css');
-require('es6-promise');
-var dirname  = require('path').dirname;
-var Rx       = require('rx');
-// Rx.config.longStackSupport = true;
+var sourcemaps = require('gulp-sourcemaps');
+var post       = require('gulp-postcss');
+var cssnano    = require('cssnano');
+var pre        = require('autoprefixer');
+var sass       = require('gulp-sass');
+var imp        = require('postcss-import');
 
 /**
  * Process SASS
@@ -12,48 +12,12 @@ var Rx       = require('rx');
  * @param ctx
  */
 function processSass (obs, opts, ctx) {
-
-    var log = obs.log;
-
-    var min      = new CleanCSS({relativeTo: dirname(opts.input)});
-    var process  = Rx.Observable.fromNodeCallback(sass.render);
-    var prefixer = require('postcss')([require('autoprefixer')]);
-
-    /**
-     * Kick it all off by running through SASS first
-     */
-    return process({file: opts.input})
-        .flatMap(function (x) {
-            return Rx.Observable.fromPromise(prefixer.process(x.css))
-        })
-        .pluck('css')
-        .map(min.minify.bind(min))
-        .pluck('styles')
-        .do(function (x) {
-            log.info('CSS written: {yellow:%s}', opts.output);
-            ctx.file.write(opts.output, x);
-        }).catch(function (err) {
-            handleError(err);
-            return Rx.Observable.throw(err);
-        });
-
-    /**
-     * Handle SASS Errors nicely
-     */
-    function handleError (err) {
-        if (err.file && err.line) {
-            err._cbDisplayed = true;
-            if (err.formatted) {
-                log.error('{red:[ERROR]');
-                console.log(err.formatted);
-            } else {
-                log.error('{cyan:Message:}', String(err.message));
-            }
-            log.error('{cyan:   File:}', String(err.file));
-            log.error('{cyan:   Line:}', String(err.line));
-            log.error('{cyan: Column:}', String(err.column));
-        }
-    }
+    return ctx.vfs.src(opts.input)
+        .pipe(sourcemaps.init())
+        .pipe(sass())
+        .pipe(post([imp, pre, cssnano]))
+        .pipe(sourcemaps.write('.'))
+        .pipe(ctx.vfs.dest(opts.output));
 }
 
 module.exports.tasks = [processSass];
