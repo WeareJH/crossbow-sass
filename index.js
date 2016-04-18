@@ -4,21 +4,19 @@ var cssnano    = require('cssnano');
 var pre        = require('autoprefixer');
 var sass       = require('gulp-sass');
 var imp        = require('postcss-import');
+var vfs        = require('vinyl-fs');
 
 /**
  * Process SASS
- * @param deferred
- * @param previous
- * @param ctx
  */
-function processSass (obs, opts, ctx) {
-    return ctx.vfs.src(opts.input)
+module.exports = function processSass (options) {
+    var productionPlugins = [imp, pre, cssnano];
+    var devPlugins = [pre];
+    
+    return vfs.src(options.input)
         .pipe(sourcemaps.init())
         .pipe(sass().on('error', sass.logError))
-        .pipe(post([imp, pre, cssnano]))
+        .pipe(post(options.production ? productionPlugins : devPlugins))
         .pipe(sourcemaps.write('.'))
-        .pipe(ctx.vfs.dest(opts.output));
-}
-
-module.exports.tasks = [processSass];
-
+        .pipe(vfs.dest(options.output));
+};

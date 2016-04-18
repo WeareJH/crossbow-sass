@@ -12,19 +12,18 @@ var runner = cb({
         handoff: true
     }
 }, {
-    crossbow: {
-        config: {
-            "./index.js": {
-                input: "test/fixtures/main.scss",
-                output: "test/fixtures/dist"
-            }
+    config: {
+        "./index.js": {
+            input: "test/fixtures/main.scss",
+            output: "test/fixtures/dist"
         }
     }
 });
 
 runner
-    .run
-    .subscribe(function () {
+    .runner
+    .series()
+    .subscribe(function (reports) {
     }, function (err) {
         console.log('as', err.stack);
     }, function () {
