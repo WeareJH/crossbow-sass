@@ -10,16 +10,17 @@
   "license": "ISC",
   "dependencies": {
     "autoprefixer": "6.3.6",
-    "cssnano": "3.5.2",
-    "gulp-postcss": "6.1.0",
-    "gulp-sass": "2.2.0",
+    "cssnano": "3.6.2",
+    "gulp-postcss": "6.1.1",
+    "gulp-rename": "1.2.2",
+    "gulp-sass": "2.3.1",
     "gulp-sourcemaps": "1.6.0",
-    "postcss-import": "8.1.0",
-    "vinyl-fs": "^2.0.0"
+    "postcss-import": "8.1.2",
+    "vinyl-fs": "2.4.3"
   },
   "devDependencies": {
+    "crossbow-cli": "3.0.14",
     "normalize.css": "3.0.3",
-    "crossbow-cli": "3.0.3",
     "rimraf": "2.5.2"
   }
 }
