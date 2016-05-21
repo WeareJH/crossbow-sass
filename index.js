@@ -12,7 +12,7 @@ var rename     = require('gulp-rename');
  */
 module.exports = function processSass (options, ctx, done) {
     var productionPlugins = [imp, pre, cssnano];
-    var devPlugins = [pre];
+    var devPlugins = [imp, pre];
 
     return vfs.src(options.input)
         .pipe(sourcemaps.init())
