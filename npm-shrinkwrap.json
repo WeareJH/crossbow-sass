@@ -1,6 +1,6 @@
 {
   "name": "crossbow-sass",
-  "version": "4.0.3",
+  "version": "4.1.0",
   "dependencies": {
     "ansi-regex": {
       "version": "2.1.1",
