@@ -8,6 +8,7 @@ module.exports = function processSass (options, ctx, done) {
     var cssnano    = require('cssnano');
     var pre        = require('autoprefixer');
     var sass       = require('gulp-sass');
+    sass.compiler  = require('sass');
     var imp        = require('postcss-import');
     var vfs        = require('vinyl-fs');
     var rename     = require('gulp-rename');
@@ -16,6 +17,7 @@ module.exports = function processSass (options, ctx, done) {
     var fs         = require('fs');
     var assert     = require('assert');
     var gulpif     = require('gulp-if');
+    var Fiber      = require('fibers');
 
     var productionPlugins = [imp, pre, cssnano];
     var devPlugins   = [imp, pre];
@@ -25,7 +27,7 @@ module.exports = function processSass (options, ctx, done) {
 
     return vfs.src(options.input)
         .pipe(sourcemaps.init())
-        .pipe(sass().on('error', done))
+        .pipe(sass({fiber: Fiber}).on('error', done))
         .pipe(post(options.production ? productionPlugins : devPlugins))
         .pipe(rename(function (path) {
             if (options.production) {
